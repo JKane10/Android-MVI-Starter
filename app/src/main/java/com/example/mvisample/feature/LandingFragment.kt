@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.mvisample.MainActivity
@@ -18,6 +19,7 @@ import com.example.mvisample.uicomponent.genericrecycler.RecyclerViewModel
 import com.example.mvisample.uicomponent.TextViewRow
 import com.example.mvisample.uicomponent.genericrecycler.RecyclerModelAdapter
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.flow.collect
 
 class LandingFragment : Fragment() {
 
@@ -40,10 +42,11 @@ class LandingFragment : Fragment() {
         recyclerView.layoutManager = LinearLayoutManager(context)
         recyclerView.adapter = adapter
 
-        //establish future listening
-        viewModel.viewState.observe(viewLifecycleOwner, Observer {
-            render(it)
-        })
+        lifecycleScope.launchWhenCreated {
+            viewModel.state.collect {
+                render(it)
+            }
+        }
 
         viewModel.dataLoaded.observe(viewLifecycleOwner, Observer { dataLoaded ->
             if (dataLoaded) Snackbar.make(view, "Data Loaded", Snackbar.LENGTH_LONG).show()

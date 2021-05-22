@@ -1,31 +1,34 @@
 package com.example.mvisample.base
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 
 abstract class BaseViewModel<S : ViewState, A : Action>(initialState: S) : ViewModel() {
-    private val nextAction = MutableLiveData<A>()
-    var viewState: LiveData<S> = MutableLiveData<S>(initialState)
+    val actionFlow = MutableSharedFlow<A>()
+    private val _state = MutableStateFlow(initialState)
+    val state: StateFlow<S> = _state
 
     init {
-        viewState = Transformations.map(
-            Transformations.switchMap(nextAction) { action ->
-                sideEffect(action)
-            }
-        ) { result -> // this leaks results. If a side effect is emitted before a result comes back it is lost
-            reduce(viewState.value ?: initialState, result).also {
-                // opportunity to log state or any other info here
-                val debugPoint = 0
+        viewModelScope.launch {
+            actionFlow.collect {
+                sideEffect(it).let { result ->
+                    _state.value = reduce(state.value, result)
+                }
             }
         }
     }
 
     fun dispatch(action: A) {
-        nextAction.value = action
+        viewModelScope.launch {
+            actionFlow.emit(action)
+        }
     }
 
-    abstract fun sideEffect(action: A): LiveData<A>
+    abstract fun sideEffect(action: A): A
     abstract fun reduce(currentViewState: S, action: A): S
 }

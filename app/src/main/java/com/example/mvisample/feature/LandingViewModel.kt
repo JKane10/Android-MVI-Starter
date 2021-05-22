@@ -12,11 +12,11 @@ class LandingViewModel : BaseViewModel<LandingState, LandingAction>(LandingState
 
     val dataLoaded = MutableLiveData(false)
 
-    override fun sideEffect(action: LandingAction): LiveData<LandingAction> {
+    override fun sideEffect(action: LandingAction): LandingAction {
         return when (action) {
-            is LandingViewAction.ButtonClicked -> MutableLiveData(LandingAction.Increment)
+            is LandingViewAction.ButtonClicked -> LandingAction.Increment
             is LandingAction.LoadInitialData -> makeDataRequest(action)
-            else -> MutableLiveData(action)
+            else -> action
         }
     }
 
@@ -29,13 +29,12 @@ class LandingViewModel : BaseViewModel<LandingState, LandingAction>(LandingState
         }
     }
 
-    private fun makeDataRequest(action: LandingAction): MutableLiveData<LandingAction> {
-        val data = MutableLiveData<LandingAction>(action)
+    private fun makeDataRequest(action: LandingAction): LandingAction {
         viewModelScope.launch(Dispatchers.IO) {
-            sleep(5000)
-            data.postValue(LandingAction.LoadInitialDataSuccess("some result!"))
+            sleep(3000)
+            actionFlow.emit(LandingAction.LoadInitialDataSuccess("some result!"))
             dataLoaded.postValue(true)
         }
-        return data
+        return action
     }
 }
