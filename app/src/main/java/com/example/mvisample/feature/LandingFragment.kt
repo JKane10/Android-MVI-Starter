@@ -41,11 +41,11 @@ class LandingFragment : Fragment() {
         recyclerView.adapter = adapter
 
         //establish future listening
-        viewModel.viewState.observe(this, Observer {
+        viewModel.viewState.observe(viewLifecycleOwner, Observer {
             render(it)
         })
 
-        viewModel.dataLoaded.observe(this, Observer { dataLoaded ->
+        viewModel.dataLoaded.observe(viewLifecycleOwner, Observer { dataLoaded ->
             if (dataLoaded) Snackbar.make(view, "Data Loaded", Snackbar.LENGTH_LONG).show()
         })
 
