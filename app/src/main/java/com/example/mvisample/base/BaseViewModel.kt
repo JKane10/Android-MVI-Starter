@@ -15,8 +15,8 @@ abstract class BaseViewModel<S : ViewState, A : Action>(initialState: S) : ViewM
 
     init {
         viewModelScope.launch {
-            actionFlow.collect {
-                sideEffect(it).let { result ->
+            actionFlow.collect { action ->
+                sideEffect(action).let { result ->
                     _state.value = reduce(state.value, result)
                 }
             }
