@@ -5,13 +5,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.mvisample.Application
 import com.example.mvisample.MainActivity
 import com.example.mvisample.R
 import com.example.mvisample.uicomponent.DoubleTextViewRow
@@ -42,6 +42,8 @@ class LandingFragment : Fragment() {
         recyclerView.layoutManager = LinearLayoutManager(context)
         recyclerView.adapter = adapter
 
+        viewModel.sampleRepo = (activity?.application as Application).sampleRepo
+
         lifecycleScope.launchWhenCreated {
             viewModel.state.collect {
                 render(it)
@@ -68,9 +70,11 @@ class LandingFragment : Fragment() {
         val models = mutableListOf<RecyclerViewModel>()
         models.add(TextViewRow("Count: ${state.count}"))
         models.add(DoubleTextViewRow("LEFT TEXT", "RIGHT TEXT"))
-        for (i in 1..state.count) {
-            models.add(TextViewRow("button pressed $i times."))
+
+        for (i in 0 until state.posts.count()) {
+            models.add(TextViewRow(state.posts[i].body))
         }
+
         adapter.viewModels = models
         adapter.notifyDataSetChanged()
     }
